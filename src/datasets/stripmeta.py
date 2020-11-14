@@ -16,7 +16,7 @@ def sanitizeFilenames(fileList) -> list:
         newname = newname.replace(" ","")
         newname = newname.replace("-","_")
         if (file != newname):
-            rename(file,newname)
+            rename(file, newname)
         sanitizedFiles.append(newname)
 
     return sanitizedFiles
@@ -29,7 +29,7 @@ def getOriginalMidis() -> list:
     print(midifiles)
     midi_fullpath = []
     for file in midifiles:
-        midi_fullpath.append(abspath(join("./midi_originals",file)))
+        midi_fullpath.append(abspath(join("./midi_originals", file)))
 
     return midi_fullpath
 
@@ -50,7 +50,9 @@ def stripMidiMeta():
         # TODO: Create new midi file with the right (amount of) channels
 
         for msg in midifile:
+            print(msg)
             if msg.type == "note_off" or msg.type == "note_on":
+                # print(msg)
                 # TODO: Add to new midi file
                 pass
             
