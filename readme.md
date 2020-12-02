@@ -7,3 +7,8 @@ You still need CUDA and CuDNN from Nvidia for CUDA Support, also, only one Insta
 **Research Proposal Paper**
 
 Link: https://docs.google.com/document/d/1agfGdEQ0hVaV_Vf7vko0Vhn-Ku71OdfSJKtr7LEfJg8/edit?usp=sharing
+
+
+1. Welche Datensätze (Genre etc.)
+2. Internes Datenmodell
+3. Wie sieht das Network aus?
