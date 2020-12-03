@@ -1,7 +1,7 @@
 # This file is responible to cut information that is not needed from the MIDI files and save them in a different folder
 
 from os import listdir, rename
-from os.path import isfile, join, abspath
+from os.path import isfile, join, abspath, splitext
 import mido
 from mido import Message, MidiFile, MidiTrack, tempo2bpm, tick2second
 
@@ -25,7 +25,8 @@ def getOriginalMidis() -> list:
     """
     Loads up all original midi files in a list and returns this list
     """
-    midifiles = [f for f in listdir("./midi_originals") if isfile(join("./midi_originals", f))]
+    midifiles = [f for f in listdir("./midi_originals") if isfile(join("./midi_originals", f)) and
+                 splitext(f)[1] == ".mid"]
     print(midifiles)
     midi_fullpath = []
     for file in midifiles:
