@@ -1,4 +1,4 @@
-# This file is responible to cut information that is not needed from the MIDI files and save them in a different folder
+# This file was responsible to cut information that is not needed from the MIDI files and save them in a different folder
 
 from os import listdir, rename
 from os.path import isfile, join, abspath, splitext

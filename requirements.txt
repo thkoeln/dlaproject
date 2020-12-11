@@ -1,7 +1,7 @@
 dataclasses==0.6
 Keras-Preprocessing==1.1.2
 matplotlib==3.3.3
-mido==1.2.9
+music21==6.3.0
 multiprocess==0.70.11.1
 numpy==1.18.0
 pandas==1.1.4
