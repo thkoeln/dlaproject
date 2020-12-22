@@ -105,12 +105,14 @@ class MidiParser:
 
         midif = converter.parse(filename)
 
-        self.length = math.ceil(midif.flat.highestTime*4.0+4.0)  # quarters to 16ths
+        self.length = math.ceil(
+            midif.flat.highestTime*4.0+16.0)  # quarters to 16ths
 
         self.arr = np.zeros((self.length, 88+1), dtype=np.int16)
 
         for i in range(0, self.length):
-            now = midif.flat.getElementsByOffset(i/4.0,i/4.0+0.25,includeEndBoundary=False,mustBeginInSpan=True,mustFinishInSpan=False)
+            now = midif.flat.getElementsByOffset(
+                i/4.0, i/4.0+0.25, includeEndBoundary=False, mustBeginInSpan=True, mustFinishInSpan=False)
             for element in now.recurse():
 
                 if isinstance(element, tempo.MetronomeMark):  # BPM Mark
@@ -121,6 +123,7 @@ class MidiParser:
 
                 if isinstance(element, chord.Chord):
                     for n in element.notes:
+                        n.quarterLength = element.quarterLength
                         self.addKey(n, i)
             self.arr[i][0] = currentBPM
         return self.arr
@@ -128,7 +131,7 @@ class MidiParser:
     def arrayToMidi(self, arr, filename):
 
         prevBPM = 0
-        theTempo=0
+        theTempo = 0
         theStream = stream.Score()
         for key in range(1, 88+1):
             keypart = stream.Part(id=key)
@@ -152,12 +155,13 @@ class MidiParser:
 
 
 def main():
-    filename = sys.argv[1].split(".")[0]
+    file = sys.argv[1].split(".")[0].replace(
+        "src/datasets/midi_originals/", "")
     parser = MidiParser()
-    song = parser.midiToArray(filename + ".mid")
-    np.savetxt(filename+".csv", song, fmt='%d', delimiter=';',
-              header='BPM;A;;B;C;;D;;E;F;;G;;A;;B;C;;D;;E;F;;G;;A;;B;C;;D;;E;F;;G;;A;;B;C;;D;;E;F;;G;;A;;B;C;;D;;E;F;;G;;A;;B;C;;D;;E;F;;G;;A;;B;C;;D;;E;F;;G;;A;;B;C')
-    parser.arrayToMidi(song, filename + "new.mid")
+    song = parser.midiToArray("src/datasets/midi_originals/" + file + ".mid")
+    np.savetxt("src/datasets/arrays/" + file + ".csv", song, fmt='%d', delimiter=';',
+               header='BPM;A;;B;C;;D;;E;F;;G;;A;;B;C;;D;;E;F;;G;;A;;B;C;;D;;E;F;;G;;A;;B;C;;D;;E;F;;G;;A;;B;C;;D;;E;F;;G;;A;;B;C;;D;;E;F;;G;;A;;B;C;;D;;E;F;;G;;A;;B;C')
+    parser.arrayToMidi(song, "src/datasets/midi_parsed/" + file + "-new.mid")
 
 
 if __name__ == "__main__":
