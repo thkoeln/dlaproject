@@ -8,6 +8,7 @@ __pycache__/
 
 # IntelliJ project settings
 .idea/
+.vscode/settings.json
 
 # Distribution / packaging
 .Python
