@@ -1,11 +1,12 @@
 from music21 import converter, stream, note, chord, tempo
 import numpy as np
+import sys
 import math
 from enum import IntEnum
 
 
 class Sound(IntEnum):
-    SILENCE = 0
+    OFSILENCE = 0
     NOTESTART = 1
     NOTECONTINUED = 2
 
@@ -132,3 +133,46 @@ class MidiParser:
                             self.addKey(n, i)
             self.arr[i][0] = currentBPM
         return self.arr
+
+    def arrayToMidi(self, arr, filename):
+
+        prevBPM = 0
+        theStream = stream.Stream()
+        # s.append(meter.TimeSignature('3/4'))
+        for i in range(0, len(arr)):
+
+            notesInStep = []
+
+            # Tempo change
+            if prevBPM != arr[i][0]:
+                prevBPM = arr[i][0]
+                theTempo = tempo.MetronomeMark(number=prevBPM)
+                theTempo.offset = i/4
+                theStream.append(theTempo)
+
+            for j in range(1, 88+1):
+                duration = 0.25
+                if arr[i][j] == Sound.NOTESTART:
+                    k = 1
+                    while i+k < len(arr) and arr[i+k][j] == Sound.NOTECONTINUED:
+                        duration += 0.25
+                        k += 1
+                    theNote = note.Note(MidiParser.rLUT(j-1))
+                    theNote.offset = i/4
+                    theNote.duration.quarterLength = duration
+                    notesInStep.append(theNote)
+            print(notesInStep)
+        #theStream.write('midi', fp=filename)
+
+
+def main():
+    filename = sys.argv[1].split(".")[0]
+    parser = MidiParser()
+    song = parser.midiToArray(filename + ".mid")
+    np.savetxt(filename+".csv", song, fmt='%d', delimiter=';',
+               header='BPM;A;;B;C;;D;;E;F;;G;;A;;B;C;;D;;E;F;;G;;A;;B;C;;D;;E;F;;G;;A;;B;C;;D;;E;F;;G;;A;;B;C;;D;;E;F;;G;;A;;B;C;;D;;E;F;;G;;A;;B;C;;D;;E;F;;G;;A;;B;C')
+    parser.arrayToMidi(song, filename + "new.mid")
+
+
+if __name__ == "__main__":
+    main()
