@@ -137,40 +137,31 @@ class MidiParser:
     def arrayToMidi(self, arr, filename):
 
         prevBPM = 0
-        theStream = stream.Stream()
-        # s.append(meter.TimeSignature('3/4'))
-        for i in range(0, len(arr)):
-
-            notesInStep = []
-
-            # Tempo change
-            if prevBPM != arr[i][0]:
-                prevBPM = arr[i][0]
-                theTempo = tempo.MetronomeMark(number=prevBPM)
-                theTempo.offset = i/4
-                theStream.append(theTempo)
-
-            for j in range(1, 88+1):
+        theStream = stream.Score()
+        for key in range(1,88+1):
+            keypart=stream.Part(id=key)
+            for timestep in range(0,len(arr)):
                 duration = 0.25
-                if arr[i][j] == Sound.NOTESTART:
+                if arr[timestep][key] == Sound.NOTESTART:
                     k = 1
-                    while i+k < len(arr) and arr[i+k][j] == Sound.NOTECONTINUED:
+                    while timestep+k < len(arr) and arr[timestep+k][key] == Sound.NOTECONTINUED:
                         duration += 0.25
                         k += 1
-                    theNote = note.Note(MidiParser.rLUT(j-1))
-                    theNote.offset = i/4
+                    theNote = note.Note(MidiParser.rLUT(key-1))
+                    offset = timestep/4.0
                     theNote.duration.quarterLength = duration
-                    notesInStep.append(theNote)
-            print(notesInStep)
-        #theStream.write('midi', fp=filename)
+                    keypart.insert(offset,theNote)
+            theStream.insert(0,keypart)
+        theStream.write('midi', fp=filename)
+
 
 
 def main():
     filename = sys.argv[1].split(".")[0]
     parser = MidiParser()
     song = parser.midiToArray(filename + ".mid")
-    np.savetxt(filename+".csv", song, fmt='%d', delimiter=';',
-               header='BPM;A;;B;C;;D;;E;F;;G;;A;;B;C;;D;;E;F;;G;;A;;B;C;;D;;E;F;;G;;A;;B;C;;D;;E;F;;G;;A;;B;C;;D;;E;F;;G;;A;;B;C;;D;;E;F;;G;;A;;B;C;;D;;E;F;;G;;A;;B;C')
+    #np.savetxt(filename+".csv", song, fmt='%d', delimiter=';',
+     #          header='BPM;A;;B;C;;D;;E;F;;G;;A;;B;C;;D;;E;F;;G;;A;;B;C;;D;;E;F;;G;;A;;B;C;;D;;E;F;;G;;A;;B;C;;D;;E;F;;G;;A;;B;C;;D;;E;F;;G;;A;;B;C;;D;;E;F;;G;;A;;B;C')
     parser.arrayToMidi(song, filename + "new.mid")
 
 
