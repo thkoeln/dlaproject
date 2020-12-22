@@ -93,7 +93,7 @@ class MidiParser:
 
     def addKey(self, theNote, pos):
         # quarter length to 1/16 length and round
-        duration = round(theNote.quarterLength * 4)
+        duration = round(theNote.quarterLength * 4.0)
         pitchVal = MidiParser.LUT(theNote.pitch)
         self.arr[pos][pitchVal+1] = Sound.NOTESTART
         for i in range(1, duration):
@@ -104,64 +104,59 @@ class MidiParser:
         currentBPM = 120
 
         midif = converter.parse(filename)
-        # Choosing Parts by Hand is done here
-        rightPart = midif.parts[0]
-        leftPart = midif.parts[1]
-        theParts = [rightPart, leftPart]
 
-        length = rightPart.highestTime
-        if length < leftPart.highestTime:
-            length = leftPart.highestTime
-        self.length = math.ceil(length*4)  # quarters to 16ths
+        self.length = math.ceil(midif.flat.highestTime*4.0+4.0)  # quarters to 16ths
 
         self.arr = np.zeros((self.length, 88+1), dtype=np.int16)
 
         for i in range(0, self.length):
-            for aPart in theParts:
-                now = aPart.getElementsByOffset(
-                    i/4, classList=['Note', 'Chord', 'MetronomeMark'])
-                for element in now.recurse():
+            now = midif.flat.getElementsByOffset(i/4.0,i/4.0+0.25,includeEndBoundary=False,mustBeginInSpan=True,mustFinishInSpan=False)
+            for element in now.recurse():
 
-                    if isinstance(element, tempo.MetronomeMark):  # BPM Mark
-                        currentBPM = element.number
+                if isinstance(element, tempo.MetronomeMark):  # BPM Mark
+                    currentBPM = element.number
 
-                    if isinstance(element, note.Note):
-                        self.addKey(element, i)
+                if isinstance(element, note.Note):
+                    self.addKey(element, i)
 
-                    if isinstance(element, chord.Chord):
-                        for n in element.notes:
-                            self.addKey(n, i)
+                if isinstance(element, chord.Chord):
+                    for n in element.notes:
+                        self.addKey(n, i)
             self.arr[i][0] = currentBPM
         return self.arr
 
     def arrayToMidi(self, arr, filename):
 
         prevBPM = 0
+        theTempo=0
         theStream = stream.Score()
-        for key in range(1,88+1):
-            keypart=stream.Part(id=key)
-            for timestep in range(0,len(arr)):
-                duration = 0.25
+        for key in range(1, 88+1):
+            keypart = stream.Part(id=key)
+            for timestep in range(0, len(arr)):
+                offset = timestep/4.0
+                if prevBPM != arr[timestep][0]:
+                    prevBPM = arr[timestep][0]
+                    theTempo = tempo.MetronomeMark(number=prevBPM)
+                    keypart.insert(offset, theTempo)
+                duration = 0.0
                 if arr[timestep][key] == Sound.NOTESTART:
                     k = 1
                     while timestep+k < len(arr) and arr[timestep+k][key] == Sound.NOTECONTINUED:
                         duration += 0.25
                         k += 1
                     theNote = note.Note(MidiParser.rLUT(key-1))
-                    offset = timestep/4.0
                     theNote.duration.quarterLength = duration
-                    keypart.insert(offset,theNote)
-            theStream.insert(0,keypart)
+                    keypart.insert(offset, theNote)
+            theStream.insert(0, keypart)
         theStream.write('midi', fp=filename)
-
 
 
 def main():
     filename = sys.argv[1].split(".")[0]
     parser = MidiParser()
     song = parser.midiToArray(filename + ".mid")
-    #np.savetxt(filename+".csv", song, fmt='%d', delimiter=';',
-     #          header='BPM;A;;B;C;;D;;E;F;;G;;A;;B;C;;D;;E;F;;G;;A;;B;C;;D;;E;F;;G;;A;;B;C;;D;;E;F;;G;;A;;B;C;;D;;E;F;;G;;A;;B;C;;D;;E;F;;G;;A;;B;C;;D;;E;F;;G;;A;;B;C')
+    np.savetxt(filename+".csv", song, fmt='%d', delimiter=';',
+              header='BPM;A;;B;C;;D;;E;F;;G;;A;;B;C;;D;;E;F;;G;;A;;B;C;;D;;E;F;;G;;A;;B;C;;D;;E;F;;G;;A;;B;C;;D;;E;F;;G;;A;;B;C;;D;;E;F;;G;;A;;B;C;;D;;E;F;;G;;A;;B;C')
     parser.arrayToMidi(song, filename + "new.mid")
 
 
