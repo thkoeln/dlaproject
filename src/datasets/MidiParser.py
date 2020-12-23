@@ -141,8 +141,8 @@ class MidiParser:
                     prevBPM = arr[timestep][0]
                     theTempo = tempo.MetronomeMark(number=prevBPM)
                     keypart.insert(offset, theTempo)
-                duration = 0.0
                 if arr[timestep][key] == Sound.NOTESTART:
+                    duration = 0.25
                     k = 1
                     while timestep+k < len(arr) and arr[timestep+k][key] == Sound.NOTECONTINUED:
                         duration += 0.25
@@ -159,8 +159,11 @@ def main():
         "src/datasets/midi_originals/", "")
     parser = MidiParser()
     song = parser.midiToArray("src/datasets/midi_originals/" + file + ".mid")
-    np.savetxt("src/datasets/arrays/" + file + ".csv", song, fmt='%d', delimiter=';',
-               header='BPM;A;;B;C;;D;;E;F;;G;;A;;B;C;;D;;E;F;;G;;A;;B;C;;D;;E;F;;G;;A;;B;C;;D;;E;F;;G;;A;;B;C;;D;;E;F;;G;;A;;B;C;;D;;E;F;;G;;A;;B;C;;D;;E;F;;G;;A;;B;C')
+    try:
+        np.savetxt("src/datasets/arrays/" + file + ".csv", song, fmt='%d', delimiter=';',
+                   header='BPM;A;;B;C;;D;;E;F;;G;;A;;B;C;;D;;E;F;;G;;A;;B;C;;D;;E;F;;G;;A;;B;C;;D;;E;F;;G;;A;;B;C;;D;;E;F;;G;;A;;B;C;;D;;E;F;;G;;A;;B;C;;D;;E;F;;G;;A;;B;C')
+    except:
+        print("Filesystem Error writing CSV")
     parser.arrayToMidi(song, "src/datasets/midi_parsed/" + file + "-new.mid")
 
 
