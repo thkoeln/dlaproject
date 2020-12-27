@@ -155,6 +155,7 @@ class MidiParser:
 
 
 def main():
+    # Die hier referenzierten Ordner müssen vorher existieren
     file = sys.argv[1].split(".")[0].replace(
         "src/datasets/midi_originals/", "")
     parser = MidiParser()
