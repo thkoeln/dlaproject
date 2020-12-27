@@ -4,6 +4,8 @@ import sys
 import math
 from enum import IntEnum
 from time import perf_counter
+import concurrent.futures
+
 
 class Sound(IntEnum):
     OFSILENCE = 0
@@ -104,14 +106,15 @@ class MidiParser:
         currentBPM = 120
         pre_conv_time = perf_counter()
         midif = converter.parse(filename)
-        print("Music21 Conversion Time (ms): " + str(1000 * (perf_counter()-pre_conv_time)))
+        print("Music21 Conversion Time (ms): " +
+              str(1000 * (perf_counter()-pre_conv_time)))
 
         self.length = math.ceil(
             midif.flat.highestTime*4.0+16.0)  # quarters to 16ths
 
         self.arr = np.zeros((self.length, 88+1), dtype=np.int16)
         # This does not yield performance gain, but should according to https://stackoverflow.com/questions/2214651/efficient-python-array-with-100-million-zeros
-        #self.arr = [ [0]*(88+1) for _ in range(self.length) ]
+        # self.arr = [ [0]*(88+1) for _ in range(self.length) ]
 
         for i in range(0, self.length):
             now = midif.flat.getElementsByOffset(
@@ -135,29 +138,39 @@ class MidiParser:
             self.arr[i][0] = currentBPM
         return self.arr
 
+    def createPart(self, arr, key) -> stream.Stream():
+        print("Create Stream for Key: " + str(key))
+        prevBPM = 0
+        keypart = stream.Part(id=key)
+        for timestep in range(0, len(arr)):
+            offset = timestep/4.0
+            if prevBPM != arr[timestep][0]:
+                prevBPM = arr[timestep][0]
+                theTempo = tempo.MetronomeMark(number=prevBPM)
+                keypart.insert(offset, theTempo)
+
+            if arr[timestep][key] == Sound.NOTESTART:
+                duration = 0.25
+                k = 1
+                while timestep+k < len(arr) and arr[timestep+k][key] == Sound.NOTECONTINUED:
+                    duration += 0.25
+                    k += 1
+
+                theNote = note.Note(MidiParser.rLUT(key-1))
+                theNote.duration.quarterLength = duration
+                keypart.insert(offset, theNote)
+
+        return keypart
+
     def arrayToMidi(self, arr, filename):
 
-        prevBPM = 0
-        theTempo = 0
         theStream = stream.Score()
         for key in range(1, 88+1):
-            keypart = stream.Part(id=key)
-            for timestep in range(0, len(arr)):
-                offset = timestep/4.0
-                if prevBPM != arr[timestep][0]:
-                    prevBPM = arr[timestep][0]
-                    theTempo = tempo.MetronomeMark(number=prevBPM)
-                    keypart.insert(offset, theTempo)
-                if arr[timestep][key] == Sound.NOTESTART:
-                    duration = 0.25
-                    k = 1
-                    while timestep+k < len(arr) and arr[timestep+k][key] == Sound.NOTECONTINUED:
-                        duration += 0.25
-                        k += 1
-                    theNote = note.Note(MidiParser.rLUT(key-1))
-                    theNote.duration.quarterLength = duration
-                    keypart.insert(offset, theNote)
+            keypart = self.createPart(arr, key)
+
             theStream.insert(0, keypart)
+
+        # This function costs a lot of time
         theStream.write('midi', fp=filename)
 
 
