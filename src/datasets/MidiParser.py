@@ -3,7 +3,7 @@ import numpy as np
 import sys
 import math
 from enum import IntEnum
-
+from time import perf_counter
 
 class Sound(IntEnum):
     OFSILENCE = 0
@@ -94,21 +94,24 @@ class MidiParser:
     def addKey(self, theNote, pos):
         # quarter length to 1/16 length and round
         duration = round(theNote.quarterLength * 4.0)
-        pitchVal = MidiParser.LUT(theNote.pitch)
-        self.arr[pos][pitchVal+1] = Sound.NOTESTART
+        pitchVal = MidiParser.LUT(theNote.pitch) + 1
+        self.arr[pos][pitchVal] = Sound.NOTESTART
         for i in range(1, duration):
-            self.arr[pos+i][pitchVal+1] = Sound.NOTECONTINUED
+            self.arr[pos+i][pitchVal] = Sound.NOTECONTINUED
 
     def midiToArray(self, filename):
 
         currentBPM = 120
-
+        pre_conv_time = perf_counter()
         midif = converter.parse(filename)
+        print("Music21 Conversion Time (ms): " + str(1000 * (perf_counter()-pre_conv_time)))
 
         self.length = math.ceil(
             midif.flat.highestTime*4.0+16.0)  # quarters to 16ths
 
         self.arr = np.zeros((self.length, 88+1), dtype=np.int16)
+        # This does not yield performance gain, but should according to https://stackoverflow.com/questions/2214651/efficient-python-array-with-100-million-zeros
+        #self.arr = [ [0]*(88+1) for _ in range(self.length) ]
 
         for i in range(0, self.length):
             now = midif.flat.getElementsByOffset(
@@ -159,18 +162,29 @@ class MidiParser:
 
 
 def main():
+    start = perf_counter()
     # Die hier referenzierten Ordner müssen vorher existieren
     file = sys.argv[1].split(".")[0].replace(
         "src/datasets/midi_originals/", "")
     parser = MidiParser()
+    init = perf_counter()
+    print("Initialisation Time (ms): " + str(1000 * (init-start)))
+
     song = parser.midiToArray("src/datasets/midi_originals/" + file + ".mid")
+    mta = perf_counter()
+    print("Midi To Array Time (ms): " + str(1000 * (mta-init)))
+
     try:
         np.savetxt("src/datasets/arrays/" + file + ".csv", song, fmt='%d', delimiter=';',
                    header='BPM;A;;B;C;;D;;E;F;;G;;A;;B;C;;D;;E;F;;G;;A;;B;C;;D;;E;F;;G;;A;;B;C;;D;;E;F;;G;;A;;B;C;;D;;E;F;;G;;A;;B;C;;D;;E;F;;G;;A;;B;C;;D;;E;F;;G;;A;;B;C')
     except:
         print("Filesystem Error writing CSV")
-    parser.arrayToMidi(song, "src/datasets/midi_parsed/" + file + "-new.mid")
+    save = perf_counter()
+    print("Array Save Time (ms): " + str(1000 * (save-mta)))
 
+    parser.arrayToMidi(song, "src/datasets/midi_parsed/" + file + "-new.mid")
+    print("Array to Midi Time (ms): " + str(1000 * (perf_counter()-save)))
+    print("Execution Time (ms): " + str(1000 * (perf_counter()-start)))
 
 if __name__ == "__main__":
     main()

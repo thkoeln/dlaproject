@@ -16,7 +16,7 @@
             "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}/src/datasets/MidiParser.py",
-            "args":["schubert/schub_d960_1_format0.mid"]
+            "args":["grieg/grieg_zwerge_format0.mid"]
         }
     ]
 }
