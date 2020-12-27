@@ -117,14 +117,18 @@ class MidiParser:
 
                 if isinstance(element, tempo.MetronomeMark):  # BPM Mark
                     currentBPM = element.number
+                    continue
 
                 if isinstance(element, note.Note):
                     self.addKey(element, i)
+                    continue
 
                 if isinstance(element, chord.Chord):
                     for n in element.notes:
                         n.quarterLength = element.quarterLength
                         self.addKey(n, i)
+                    continue
+
             self.arr[i][0] = currentBPM
         return self.arr
 
