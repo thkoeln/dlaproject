@@ -138,8 +138,16 @@ class MidiParser:
             self.arr[i][0] = currentBPM
         return self.arr
 
-    def createPart(self, arr, key) -> stream.Stream():
-        print("Create Stream for Key: " + str(key))
+    def createPart(arr : list, key : int) -> stream.Stream():
+        """Creates a Part-Stream for the given key from the array
+
+        Args:
+            arr (list): The array with the full information for the music score 
+            key (int): The key the part stream should be created for
+
+        Returns:
+            stream.Stream(): The stream containing all the notes and metronome marks for the key 
+        """
         prevBPM = 0
         keypart = stream.Part(id=key)
         for timestep in range(0, len(arr)):
@@ -160,14 +168,22 @@ class MidiParser:
                 theNote.duration.quarterLength = duration
                 keypart.insert(offset, theNote)
 
+        print("Created Stream for Key: " + str(key))
         return keypart
 
     def arrayToMidi(self, arr, filename):
+        """Converst an array to a MIDI file concurrently for every possible of the 88 notes
 
+        Args:
+            arr (list): The array to convert to MIDI
+            filename (str): The filename, where the MIDI file should be created
+        """
         theStream = stream.Score()
-        for key in range(1, 88+1):
-            keypart = self.createPart(arr, key)
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            futures = [executor.submit(MidiParser.createPart,arr.copy(),key) for key in range(1,88+1)]
 
+        keyparts = [future.result() for future in futures]
+        for keypart in keyparts:    
             theStream.insert(0, keypart)
 
         # This function costs a lot of time
