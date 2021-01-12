@@ -16,6 +16,8 @@ def generateCSVFilesFromList(parser, file, interpret):
                            header='BPM;A;;B;C;;D;;E;F;;G;;A;;B;C;;D;;E;F;;G;;A;;B;C;;D;;E;F;;G;;A;;B;C;;D;;E;F;;G;;A;;B;C;;D;;E;F;;G;;A;;B;C;;D;;E;F;;G;;A;;B;C;;D;;E;F;;G;;A;;B;C')
     except:
         print("Filesystem Error writing CSV")
+    
+    return song
 
 def generateAllCSVFiles():
     # get all folders in midi_originals

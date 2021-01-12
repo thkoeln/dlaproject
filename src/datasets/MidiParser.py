@@ -126,7 +126,7 @@ class MidiParser:
         for i in range(0, self.length):
             now = midif.flat.getElementsByOffset(
                 i/4.0, i/4.0+0.25, includeEndBoundary=False, mustBeginInSpan=True, mustFinishInSpan=False)
-            if (i % 100 == 0):
+            if (i % 500 == 0):
                 print("Processing the {}th 16th note.".format(str(i)))
             for element in now.recurse():
 
