@@ -7,15 +7,15 @@ import concurrent.futures
 
 from MidiParser import MidiParser
 
-def generateCSVFilesFromList(parser, files, interpret):
-    for file in files:
-        filepath = "src/datasets/midi_originals/" + interpret + "/" + file
-        song = parser.midiToArray(filepath)
-        try:
-            np.savetxt("src/datasets/arrays/" + interpret + "/" + file + ".csv", song, fmt='%d', delimiter=';',
+def generateCSVFilesFromList(parser, file, interpret):
+    print("=== Working on Interpret: " + str(interpret) + " and file: " + str(file))
+    filepath = "src/datasets/midi_originals/" + interpret + "/" + file
+    song = parser.midiToArray(filepath)
+    try:
+        np.savetxt("src/datasets/arrays/" + interpret + "/" + file + ".csv", song, fmt='%d', delimiter=';',
                            header='BPM;A;;B;C;;D;;E;F;;G;;A;;B;C;;D;;E;F;;G;;A;;B;C;;D;;E;F;;G;;A;;B;C;;D;;E;F;;G;;A;;B;C;;D;;E;F;;G;;A;;B;C;;D;;E;F;;G;;A;;B;C;;D;;E;F;;G;;A;;B;C')
-        except:
-            print("Filesystem Error writing CSV")
+    except:
+        print("Filesystem Error writing CSV")
 
 def generateAllCSVFiles():
     # get all folders in midi_originals
@@ -33,8 +33,9 @@ def generateAllCSVFiles():
         files = [f for f in listdir(fullfolder) if isfile(join(fullfolder, f))]
         #generateCSVFilesFromList(parser, files, interpret)
         with concurrent.futures.ProcessPoolExecutor() as executor:
+                
                 futures = [executor.submit(
-                    generateCSVFilesFromList, *[parser, files, interpret]) for key in range(1, 88+1)]
+                    generateCSVFilesFromList, *[parser, file, interpret]) for file  in files]
 
                 results = [future.result() for future in futures]
                 print(results)
