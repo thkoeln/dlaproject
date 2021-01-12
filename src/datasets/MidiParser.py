@@ -6,7 +6,7 @@ from enum import IntEnum
 from time import perf_counter
 import concurrent.futures
 import itertools
-
+import time
 
 class Sound(IntEnum):
     OFSILENCE = 0
@@ -21,8 +21,7 @@ class MidiParser:
 
     def LUT(pitch):
         '''Turns a music21.pitch object into an Integer between 0 and 87 according to the corresponding piano key'''
-        out = 0
-        out += (pitch.octave * 12)
+        out = (pitch.octave * 12)
 
         offsetKey = {
             'C': -9,
@@ -189,7 +188,7 @@ class MidiParser:
             filename (str): The filename, where the MIDI file should be created
         """
         # Working with ThreadPoolExceutor, but much faster with ProcessPoolExecutor
-        # with concurrent.futures.ProcessPoolExecutor() as executor:
+        #with concurrent.futures.ProcessPoolExecutor() as executor:
         with concurrent.futures.ThreadPoolExecutor(max_workers=32) as executor:
             futures = [executor.submit(
                 MidiParser.createPart, *[arr, key]) for key in range(1, 88+1)]
@@ -197,15 +196,17 @@ class MidiParser:
             theStream = stream.Score()
 
             keyparts = [future.result() for future in futures]
+
             for keypart in keyparts:
                 theStream.insert(0, keypart)
+                
                 # TODO: Maybe create the part here, and only return a list of notes from the createPart function that is added to a part here
                 # vv This will work just fine, but theStream.write() further down won't work with ProcessPoolExecutor
-                #fn = filename.replace(".mid",str(keypart.id)+".mid")
+                # fn = filename.replace(".mid",str(keypart.id)+".mid")
                 # keypart.write("midi",fp=fn)
 
             # This function costs a lot of time
-            theStream.show("text")
+            #theStream.show("text")
             theStream.write('midi', fp=filename)
 
 

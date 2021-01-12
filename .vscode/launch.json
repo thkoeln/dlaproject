@@ -17,6 +17,12 @@
             "request": "launch",
             "program": "${workspaceFolder}/src/datasets/MidiParser.py",
             "args":["grieg/grieg_zwerge_format0.mid"]
+        },
+        {
+            "name": "Python: Preprocess CSVs",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/datasets/GenerateCSV.py"
         }
     ]
 }
