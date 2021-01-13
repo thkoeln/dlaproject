@@ -23,6 +23,12 @@
             "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}/src/datasets/GenerateCSV.py"
+        },
+        {
+            "name": "Python: music_dataset.py",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/datasets/music_dataset.py"
         }
     ]
 }
