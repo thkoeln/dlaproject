@@ -13,7 +13,8 @@ def main():
     parser.add_argument('--image_width', type=int, default=128)
     parser.add_argument('--image_height', type=int, default=128)
     parser.add_argument('--batch_size', type=int, default=32)
-    parser.add_argument('--lstm_layeys', type=int, default=16)
+    parser.add_argument('--lstm_layers', type=int, default=16)
+    parser.add_argument('--composer', type=str, default="albeniz")
     parser.add_argument('--val_split', type=float, default=0.2)
     parser.add_argument('--train_split', type=float, default=0.8)
     parser.add_argument('--plot', default=True, action='store_true', help='plot loss')
@@ -21,7 +22,7 @@ def main():
     config = parser.parse_args()
 
     # generate Trainer
-    prep = getattr(trainer_import, 'trainer_' + config.trainer.lower())
+    prep = getattr(trainer_import, config.trainer.lower() + "_trainer")
     prepare_fct = getattr(prep, 'Trainer' + config.trainer)
     trainer = prepare_fct(**config.__dict__)
 

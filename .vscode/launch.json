@@ -29,6 +29,12 @@
             "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}/src/datasets/music_dataset.py"
+        },
+        {
+            "name": "Python: main.py",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/main.py"
         }
     ]
 }

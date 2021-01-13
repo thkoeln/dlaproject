@@ -18,23 +18,35 @@ def plot_loss(history):
     plt.show()
 
 
-class TrainerRNN:
+class TrainerMusic:
     def __init__(self, epochs, learning_rate, val_split, train_split, **kwargs):
         self.epochs = epochs
         self.learning_rate = learning_rate
         self.val_split = val_split
         self.train_split = train_split
+        gpus = tf.config.experimental.list_physical_devices('GPU')
+        if gpus:
+            try:
+            # Currently, memory growth needs to be the same across GPUs
+                for gpu in gpus:
+                    tf.config.experimental.set_memory_growth(gpu, True)
+                    logical_gpus = tf.config.experimental.list_logical_devices('GPU')
+                    print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPUs")
+            except RuntimeError as e:
+            # Memory growth must be set before GPUs have been initialized
+                print(e)
 
-    def train(self, plot=True, image_width=180, image_height=180, batch_size=32, lstm_layers=16, **kwargs):
+
+    def train(self, plot=True, image_width=180, image_height=180, batch_size=32, lstm_layers=16, composer=None, **kwargs):
         music = True
         if music:
-            future_target = 0
+            future_target = 265 # ??? was macht das
             plot_multi_variate = False
             single_step_prediction = True
             # get dataset
             training_set, validation_set, shape = get_dataset_music(future_target=future_target,
                                                                     single_step=single_step_prediction,
-                                                                    batch_size=batch_size)
+                                                                    batch_size=batch_size, composer = composer)
         else:
             raise NotImplementedError()
 
@@ -51,6 +63,9 @@ class TrainerRNN:
             epochs=self.epochs,
             callbacks=[tensorboard_callback]
         )
+
+        print("Parameters: {}".format(model.count_params()))
+        print(model.get_weights())
 
         if plot:
             mae = history.history['mae']
@@ -77,8 +92,9 @@ class TrainerRNN:
 
             for x, y in validation_set.take(3):
                 if plot_multi_variate:
-                    plot = multi_step_plot(x[0].numpy(), y[0].numpy(), model.predict(x)[0], future_target)
+                    print(model.predict(x)[0])
+                    #plot = multi_step_plot(x[0].numpy(), y[0].numpy(), model.predict(x)[0], future_target)
                 else:
-                    plot = show_plot([x[0].numpy(), y[0].numpy(),
-                                     model.predict(x)[0]], 0, 'Music LSTM model')
-                plot.show()
+                    pass
+                    #plot = show_plot([x[0].numpy(), y[0].numpy(), model.predict(x)[0]], 0, 'Music LSTM model')
+                #plot.show()

@@ -9,7 +9,7 @@ basepath = "src/datasets/arrays/"
 mpl.rcParams['figure.figsize'] = (8, 6)
 mpl.rcParams['axes.grid'] = False
 
-
+                                                                       # bisher verarbeitete samples
 def scramble_data(dataset, target, start_index : int, end_index : int, history_size : int,
                       target_size : int, step: int, single_step=False):
     data = []
@@ -30,7 +30,7 @@ def scramble_data(dataset, target, start_index : int, end_index : int, history_s
 
     return np.array(data), np.array(labels)
 
-def get_dataset(batch_size=256, buffer_size=10000, train_split_pct=0.5, seed=13, debug=True, plot=True, past_history=1024, future_target=64, step_size=16, single_step=True, composer=None):
+def get_dataset(batch_size=256, buffer_size=10000, train_split_pct=0.5, seed=13, debug=True, plot=False, past_history=1024, future_target=64, step_size=16, single_step=True, composer=None):
     # Load Dataset from csv to arrays (filtered by composer)
     dataset_csv_files = []
     if composer != None:
@@ -56,9 +56,10 @@ def get_dataset(batch_size=256, buffer_size=10000, train_split_pct=0.5, seed=13,
 
     dataframes = []
     for dataset_csv_file in dataset_csv_files:
-        dataframe = pd.read_csv(dataset_csv_file)
+        dataframe = pd.read_csv(dataset_csv_file, delimiter=";")
         dataframes.append(dataframe)
 
+    # Vllt null-puffer zwischen musikstücken einfügen, damit kein aprupter übergang vorhanden ist?
     complete_dataframe_set = pd.concat(dataframes)
 
     if debug:
@@ -68,25 +69,42 @@ def get_dataset(batch_size=256, buffer_size=10000, train_split_pct=0.5, seed=13,
     tf.random.set_seed(13)
 
     # get the data from the dataset and define the features (metronome and notes)
-    features = complete_dataframe_set
+    features = complete_dataframe_set.to_numpy()
+    features_extended = np.zeros((features.shape[0], 88*3+1), dtype=np.float)
+    for x in range(features.shape[0]):
+        features_extended[x][0] = features[x][0]/200.0
+        for y in range(1,89):
+            if features[x][y] == 0:
+                features_extended[x][y*3 - 2] = 1
+                continue
+            if features[x][y] == 1:
+                features_extended[x][y*3+1 - 2] = 1
+                continue
+            if features[x][y] == 2:
+                features_extended[x][y*3+2 - 2] = 1
+                continue
 
+    features = None
     # normalize data (splitting per amount of notes etc)
     # TODO: might not be needed due to scramble_data -> was multivariate_data() @ https://github.com/thdla/DLA2020/blob/master/Homework/dla_project/datasets/multivariate_timeseries.py
 
     # split for train and validation set
-    dataset = features.values
-    dataset_size = dataset.size
+    #dataset = features.values
+    dataset = features_extended
+    dataset_size = dataset.shape[0]
     train_split = int(train_split_pct*dataset_size)
-    data_mean = dataset[:train_split].mean(axis=0)
-    data_std = dataset[:train_split].std(axis=0)
+    # ??? vvv was macht das?
+    #data_mean = dataset[:train_split].mean(axis=0)
+    #data_std = dataset[:train_split].std(axis=0)
 
-    dataset = (dataset - data_mean) / data_std
+    #dataset = (dataset - data_mean) / data_std
+    # ??? ^^^
 
-    x_train_single, y_train_single = scramble_data(dataset, dataset[:, 1], 0,
+    x_train_single, y_train_single = scramble_data(dataset, dataset, 0,
                                                        train_split, past_history,
                                                        future_target, step_size,
                                                        single_step=single_step)
-    x_val_single, y_val_single = scramble_data(dataset, dataset[:, 1],
+    x_val_single, y_val_single = scramble_data(dataset, dataset,
                                                    train_split, None, past_history,
                                                    future_target, step_size,
                                                    single_step=single_step)
