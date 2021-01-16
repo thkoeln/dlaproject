@@ -209,6 +209,16 @@ class MidiParser:
             #theStream.show("text")
             theStream.write('midi', fp=filename)
 
+    def validateCSV(self, arr):
+        for key in range(1, 88+1):
+            for timestep in range(0, len(arr)):
+                if timestep == 0 and arr[timestep][key] == 1:
+                    arr[timestep][key] = 2
+                    continue
+                if timestep > 0 and arr[timestep][key] == 1 and arr[timestep-1][key] == 0:
+                    arr[timestep][key] = 2
+                    continue
+
 
 def main():
     start = perf_counter()

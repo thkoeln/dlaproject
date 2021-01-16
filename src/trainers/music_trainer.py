@@ -38,6 +38,22 @@ class TrainerMusic:
             # Memory growth must be set before GPUs have been initialized
                 print(e)
 
+    
+    def predictionToArr(self, pred):
+        arr = np.zeros((len(pred), 88+1), dtype=np.int16)
+        for i in range(0, len(pred)):
+            arr[i][0] = int(200 * pred[i][0])
+            for n in range(1, 88+1):
+                count = 1
+                max = 0.0
+                maxIndex = 0
+                for k in range(0,3):
+                    if pred[i][count] > max:
+                        maxIndex = k
+                    count = count + 1
+                arr[i][n] = maxIndex
+        return arr
+
 
     def train(self, plot=True, image_width=180, image_height=180, batch_size=32, lstm_layers=16, composer=None, **kwargs):
         music = True
@@ -95,11 +111,15 @@ class TrainerMusic:
             testset =  validation_set.take(3)
             testlist = testset.as_numpy_iterator()
             for test in testlist:
-                print(test)
-                print(type(test))
+                # print(test)
+                # print(type(test))
                 prediction = model.predict(test[0])
+                print(prediction.shape)
+                arr = self.predictionToArr(prediction)
+                print(arr)
                 print(prediction)
-                print(prediction[0])
-                print(prediction[1])
-                print(prediction[2])
-                pd.DataFrame(prediction).to_csv("test_pred.csv", header=False)
+                # print(prediction[0])
+                # print(prediction[1])
+                # print(prediction[2])
+                pd.DataFrame(arr).to_csv("test_arr.csv", header=False, index=False)
+                pd.DataFrame(prediction).to_csv("test_pred.csv", header=False, index=False)
