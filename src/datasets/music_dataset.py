@@ -69,7 +69,7 @@ def get_dataset(batch_size=256, buffer_size=10000, train_split_pct=0.5, seed=13,
     # set random seed
     tf.random.set_seed(13)
 
-    # get the data from the dataset and define the features (metronome and notes)
+    # get the data from the dataset and define the features (metronome and notes) + normalization to float values
     features = complete_dataframe_set.to_numpy()
     features_extended = np.zeros((features.shape[0], 88*3+1), dtype=np.float)
     for x in range(features.shape[0]):
@@ -84,6 +84,7 @@ def get_dataset(batch_size=256, buffer_size=10000, train_split_pct=0.5, seed=13,
             if features[x][y] == 2:
                 features_extended[x][y*3+2 - 2] = 1.0
                 continue
+            print("*** ERROR on feature normalization: There are values not fitting here ***")
 
     features = None
     # normalize data (splitting per amount of notes etc)
