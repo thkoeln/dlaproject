@@ -4,7 +4,8 @@ import tensorflow as tf
 def get_model(input_shape, lr=0.001, future_target=265, summary=True, lstm_layers=16):
     music_lstm_model = tf.keras.models.Sequential([
         tf.keras.layers.LSTM(lstm_layers, input_shape=input_shape),
-        tf.keras.layers.Dense(future_target)
+        tf.keras.layers.Dense(future_target, activation="relu"),
+        tf.keras.layers.Dense(future_target, activation="relu"), # <- Only Relu will yield values between 0 and 1 that seem reasonable
     ])
 
     music_lstm_model.compile(optimizer=tf.keras.optimizers.Adam(lr), loss='mse', metrics=['mae'])

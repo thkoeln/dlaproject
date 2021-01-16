@@ -9,8 +9,9 @@ basepath = "src/datasets/arrays/"
 mpl.rcParams['figure.figsize'] = (8, 6)
 mpl.rcParams['axes.grid'] = False
 
+#  Is actually seems to do data windowing (@see https://www.tensorflow.org/tutorials/structured_data/time_series#data_windowing)
                                                                        # bisher verarbeitete samples
-def scramble_data(dataset, target, start_index : int, end_index : int, history_size : int,
+def data_windowing(dataset, target, start_index : int, end_index : int, history_size : int,
                       target_size : int, step: int, single_step=False):
     data = []
     labels = []
@@ -75,13 +76,13 @@ def get_dataset(batch_size=256, buffer_size=10000, train_split_pct=0.5, seed=13,
         features_extended[x][0] = features[x][0]/200.0
         for y in range(1,89):
             if features[x][y] == 0:
-                features_extended[x][y*3 - 2] = 1
+                features_extended[x][y*3 - 2] = 1.0
                 continue
             if features[x][y] == 1:
-                features_extended[x][y*3+1 - 2] = 1
+                features_extended[x][y*3+1 - 2] = 1.0
                 continue
             if features[x][y] == 2:
-                features_extended[x][y*3+2 - 2] = 1
+                features_extended[x][y*3+2 - 2] = 1.0
                 continue
 
     features = None
@@ -100,11 +101,11 @@ def get_dataset(batch_size=256, buffer_size=10000, train_split_pct=0.5, seed=13,
     #dataset = (dataset - data_mean) / data_std
     # ??? ^^^
 
-    x_train_single, y_train_single = scramble_data(dataset, dataset, 0,
+    x_train_single, y_train_single = data_windowing(dataset, dataset, 0,
                                                        train_split, past_history,
                                                        future_target, step_size,
                                                        single_step=single_step)
-    x_val_single, y_val_single = scramble_data(dataset, dataset,
+    x_val_single, y_val_single = data_windowing(dataset, dataset,
                                                    train_split, None, past_history,
                                                    future_target, step_size,
                                                    single_step=single_step)

@@ -2,6 +2,8 @@ from models.music_lstm import get_model
 import matplotlib.pyplot as plt
 import tensorflow as tf
 from utils.plot import show_plot, multi_step_plot
+import pandas as pd
+import numpy as np
 
 # datasets
 from datasets.music_dataset import get_dataset as get_dataset_music
@@ -40,7 +42,7 @@ class TrainerMusic:
     def train(self, plot=True, image_width=180, image_height=180, batch_size=32, lstm_layers=16, composer=None, **kwargs):
         music = True
         if music:
-            future_target = 265 # ??? was macht das
+            future_target = 265 # output size: bestimmt die größe des letzten Dense layer (u.a.)
             plot_multi_variate = False
             single_step_prediction = True
             # get dataset
@@ -65,7 +67,7 @@ class TrainerMusic:
         )
 
         print("Parameters: {}".format(model.count_params()))
-        print(model.get_weights())
+        #print(model.get_weights())
 
         if plot:
             mae = history.history['mae']
@@ -90,11 +92,14 @@ class TrainerMusic:
             plt.title('Training and Validation Loss')
             plt.show()
 
-            for x, y in validation_set.take(3):
-                if plot_multi_variate:
-                    print(model.predict(x)[0])
-                    #plot = multi_step_plot(x[0].numpy(), y[0].numpy(), model.predict(x)[0], future_target)
-                else:
-                    pass
-                    #plot = show_plot([x[0].numpy(), y[0].numpy(), model.predict(x)[0]], 0, 'Music LSTM model')
-                #plot.show()
+            testset =  validation_set.take(3)
+            testlist = testset.as_numpy_iterator()
+            for test in testlist:
+                print(test)
+                print(type(test))
+                prediction = model.predict(test[0])
+                print(prediction)
+                print(prediction[0])
+                print(prediction[1])
+                print(prediction[2])
+                pd.DataFrame(prediction).to_csv("test_pred.csv", header=False)
