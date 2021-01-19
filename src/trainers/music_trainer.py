@@ -108,9 +108,9 @@ class TrainerMusic:
             plt.title('Training and Validation Loss')
             plt.show()
 
-            testset =  validation_set.take(3)
-            testlist = testset.as_numpy_iterator()
-            for test in testlist:
+            testset =  validation_set.take(100)
+            test_iterator = testset.as_numpy_iterator()
+            for test in test_iterator:
                 # print(test)
                 # print(type(test))
                 prediction = model.predict(test[0])
