@@ -9,6 +9,8 @@ basepath = "src/datasets/arrays/"
 mpl.rcParams['figure.figsize'] = (8, 6)
 mpl.rcParams['axes.grid'] = False
 
+BASE_BPM = 200.0
+
 #  Is actually seems to do data windowing (@see https://www.tensorflow.org/tutorials/structured_data/time_series#data_windowing)
                                                                        # bisher verarbeitete samples
 def data_windowing(dataset, target, start_index : int, end_index : int, history_size : int,
@@ -53,18 +55,27 @@ def get_dataset(batch_size=256, buffer_size=10000, train_split_pct=0.5, seed=13,
                 break
 
     if debug:
-        print(dataset_csv_files[0:5])
+        print(dataset_csv_files[:10])
 
-    dataframes = []
+    complete_dataframe_set = pd.DataFrame()
     for dataset_csv_file in dataset_csv_files:
         dataframe = pd.read_csv(dataset_csv_file, delimiter=";")
-        dataframes.append(dataframe)
+        if debug:
+            print("Creating Pandas DataFrame for: " + dataset_csv_file)
+            print("First Line: " + str(dataframe.to_numpy()[0]))
+        complete_dataframe_set = complete_dataframe_set.append(dataframe)
 
     # Vllt null-puffer zwischen musikstücken einfügen, damit kein aprupter übergang vorhanden ist?
-    complete_dataframe_set = pd.concat(dataframes)
+    #complete_dataframe_set = pd.concat(dataframes, ignore_index=True)
 
     if debug:
-        print(complete_dataframe_set.head())
+        print(complete_dataframe_set.head(10))
+        # Also get first line completely:
+        print(complete_dataframe_set.to_numpy()[0])
+        print(complete_dataframe_set.to_numpy()[16])
+        print(complete_dataframe_set.to_numpy()[32])
+        print(complete_dataframe_set.to_numpy()[64])
+        print(complete_dataframe_set.to_numpy()[128])
 
     # set random seed
     tf.random.set_seed(13)
@@ -72,8 +83,11 @@ def get_dataset(batch_size=256, buffer_size=10000, train_split_pct=0.5, seed=13,
     # get the data from the dataset and define the features (metronome and notes) + normalization to float values
     features = complete_dataframe_set.to_numpy()
     features_extended = np.zeros((features.shape[0], 88*3+1), dtype=np.float)
+    if debug:
+        print("Amount of 16th-Note-Rows in Dataset: " + str(features.shape[0]))
+        print("Iterate over these...")
     for x in range(features.shape[0]):
-        features_extended[x][0] = features[x][0]/200.0
+        features_extended[x][0] = features[x][0]/BASE_BPM
         for y in range(1,89):
             if features[x][y] == 0:
                 features_extended[x][y*3 - 2] = 1.0
@@ -87,6 +101,13 @@ def get_dataset(batch_size=256, buffer_size=10000, train_split_pct=0.5, seed=13,
             print("*** ERROR on feature normalization: There are values not fitting here ***")
 
     features = None
+    if debug:
+        print(features_extended[0])
+        print(features_extended[16])
+        print(features_extended[32])
+        print(features_extended[64])
+        print(features_extended[128])
+        
     # normalize data (splitting per amount of notes etc)
     # TODO: might not be needed due to scramble_data -> was multivariate_data() @ https://github.com/thdla/DLA2020/blob/master/Homework/dla_project/datasets/multivariate_timeseries.py
 
@@ -94,6 +115,7 @@ def get_dataset(batch_size=256, buffer_size=10000, train_split_pct=0.5, seed=13,
     #dataset = features.values
     dataset = features_extended
     dataset_size = dataset.shape[0]
+    print("Dataset contains {} rows, splitting by {}%".format(dataset_size, train_split_pct*100.0))
     train_split = int(train_split_pct*dataset_size)
     # ??? vvv was macht das?
     #data_mean = dataset[:train_split].mean(axis=0)
@@ -102,6 +124,7 @@ def get_dataset(batch_size=256, buffer_size=10000, train_split_pct=0.5, seed=13,
     #dataset = (dataset - data_mean) / data_std
     # ??? ^^^
 
+                                    # TODO: Check this, is this feasible here?
     x_train_single, y_train_single = data_windowing(dataset, dataset, 0,
                                                        train_split, past_history,
                                                        future_target, step_size,

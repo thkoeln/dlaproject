@@ -6,7 +6,7 @@ import pandas as pd
 import numpy as np
 
 # datasets
-from datasets.music_dataset import get_dataset as get_dataset_music
+from datasets.music_dataset import BASE_BPM, get_dataset as get_dataset_music
 
 
 def plot_loss(history):
@@ -42,7 +42,7 @@ class TrainerMusic:
     def predictionToArr(self, pred):
         arr = np.zeros((len(pred), 88+1), dtype=np.int16)
         for i in range(0, len(pred)):
-            arr[i][0] = int(200 * pred[i][0])
+            arr[i][0] = int(BASE_BPM * pred[i][0]) 
             for n in range(1, 88+1):
                 count = 1
                 max = 0.0
@@ -55,16 +55,16 @@ class TrainerMusic:
         return arr
 
 
-    def train(self, plot=True, image_width=180, image_height=180, batch_size=32, lstm_layers=16, composer=None, **kwargs):
+    def train(self, plot=True, batch_size=32, lstm_layers=16, composer=None, **kwargs):
         music = True
         if music:
             future_target = 265 # output size: bestimmt die größe des letzten Dense layer (u.a.)
             plot_multi_variate = False
-            single_step_prediction = True
+            single_step_prediction = True # Will break model.fit() with False
             # get dataset
             training_set, validation_set, shape = get_dataset_music(future_target=future_target,
                                                                     single_step=single_step_prediction,
-                                                                    batch_size=batch_size, composer = composer)
+                                                                    batch_size=batch_size, composer=composer,train_split_pct=self.train_split)
         else:
             raise NotImplementedError()
 
@@ -86,22 +86,31 @@ class TrainerMusic:
         #print(model.get_weights())
 
         if plot:
-            mae = history.history['mae']
-            val_mae = history.history['val_mae']
+            cee = history.history['categorical_crossentropy']
+            val_cee = history.history['val_categorical_crossentropy']
+
+            acc = history.history['mse']
+            val_acc = history.history['mse']
 
             loss = history.history['loss']
             val_loss = history.history['val_loss']
 
             epochs_range = range(self.epochs)
 
-            plt.figure(figsize=(8, 8))
-            plt.subplot(1, 2, 1)
-            plt.plot(epochs_range, mae, label='Training MAE')
-            plt.plot(epochs_range, val_mae, label='Validation MAE')
+            plt.figure(figsize=(8, 12))
+            plt.subplot(1, 3, 1)
+            plt.plot(epochs_range, cee, label='Training CCE')
+            plt.plot(epochs_range, val_cee, label='Validation CCE')
             plt.legend(loc='lower right')
-            plt.title('Training and Validation MAE')
+            plt.title('Training and Validation CCE')
 
-            plt.subplot(1, 2, 2)
+            plt.subplot(1, 3, 2)
+            plt.plot(epochs_range, acc, label='Training MSE')
+            plt.plot(epochs_range, val_acc, label='Validation MSE')
+            plt.legend(loc='lower right')
+            plt.title('Training and Validation MSE')
+
+            plt.subplot(1, 3, 3)
             plt.plot(epochs_range, loss, label='Training Loss')
             plt.plot(epochs_range, val_loss, label='Validation Loss')
             plt.legend(loc='upper right')
@@ -116,10 +125,12 @@ class TrainerMusic:
                 prediction = model.predict(test[0])
                 print(prediction.shape)
                 arr = self.predictionToArr(prediction)
-                print(arr)
-                print(prediction)
+                #print(arr)
+                #print(prediction)
                 # print(prediction[0])
                 # print(prediction[1])
                 # print(prediction[2])
-                pd.DataFrame(arr).to_csv("test_arr.csv", header=False, index=False)
+                arr_dataframe = pd.DataFrame(arr)
+                print(arr_dataframe.shape)
+                arr_dataframe.to_csv("test_arr.csv", header=False, index=False)
                 pd.DataFrame(prediction).to_csv("test_pred.csv", header=False, index=False)
