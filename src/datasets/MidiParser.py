@@ -218,7 +218,7 @@ class MidiParser:
                 if timestep > 0 and arr[timestep][key] == 1 and arr[timestep-1][key] == 0:
                     arr[timestep][key] = 2
                     continue
-
+        return arr
 
 def main():
     start = perf_counter()
