@@ -8,7 +8,7 @@ import numpy as np
 
 # datasets
 from datasets.music_dataset import BASE_BPM, BPM_MODIFIER, FEATURE_SIZE, get_dataset as get_dataset_music
-
+PREDICTION_LENGTH = 800
 
 def plot_loss(history):
     plt.plot(history.history['loss'], label='loss')
@@ -116,15 +116,15 @@ class TrainerMusic:
             plt.plot(epochs_range, val_loss, label='Validation Loss')
             plt.legend(loc='upper right')
             plt.title('Training and Validation Loss')
-            plt.show()
+            #plt.show()
 
-            testset =  validation_set.take(10)
+            testset =  validation_set.take(1)
             test_iterator = testset.as_numpy_iterator()
             for test in test_iterator:
                 # print(test)
                 # print(type(test))
                 # print(test.shape)
-                prediction = model.predict(test[0][:500])
+                prediction = model.predict(test[0][:PREDICTION_LENGTH])
                 print(prediction.shape)
                 arr = self.predictionToArr(prediction)
                 # print(arr)
@@ -143,5 +143,6 @@ class TrainerMusic:
                 print(arr_file)
                 arr_corr = MidiParser().validateCSV(arr_file)
                 pd.DataFrame(arr_corr).to_csv("test_corr.csv", header=False, index=False)
-                MidiParser().arrayToMidi(arr_corr,"test_corr.mid")
                 MidiParser().arrayToMidi(arr_file,"test_arr.mid")
+                MidiParser().arrayToMidi(arr_corr,"test_corr.mid")
+
