@@ -138,5 +138,10 @@ class TrainerMusic:
                 pd.DataFrame(prediction).to_csv("test_pred.csv", header=False, index=False)
 
                 arr_file = arr_dataframe.to_numpy()
-                #arr_file = MidiParser().validateCSV(arr_file)
+                print(arr_file[0])
+                print(arr_file[1])
+                print(arr_file)
+                arr_corr = MidiParser().validateCSV(arr_file)
+                pd.DataFrame(arr_corr).to_csv("test_corr.csv", header=False, index=False)
+                MidiParser().arrayToMidi(arr_corr,"test_corr.mid")
                 MidiParser().arrayToMidi(arr_file,"test_arr.mid")
