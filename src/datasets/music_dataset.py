@@ -10,6 +10,8 @@ mpl.rcParams['figure.figsize'] = (8, 6)
 mpl.rcParams['axes.grid'] = False
 
 BASE_BPM = 200.0
+# input/output size (for us=(88)*3 + 1  = 265)
+FEATURE_SIZE = 177 
 
 #  Is actually seems to do data windowing (@see https://www.tensorflow.org/tutorials/structured_data/time_series#data_windowing)
                                                                        # bisher verarbeitete samples
@@ -33,7 +35,7 @@ def data_windowing(dataset, target, start_index : int, end_index : int, history_
 
     return np.array(data), np.array(labels)
 
-def get_dataset(batch_size=256, buffer_size=10000, train_split_pct=0.5, seed=13, debug=True, plot=False, past_history=1024, future_target=64, step_size=16, single_step=True, composer=None):
+def get_dataset(batch_size=32, buffer_size=10000, train_split_pct=0.5, seed=13, debug=True, plot=False, past_history=1024, future_target=64, step_size=16, single_step=True, composer=None):
     # Load Dataset from csv to arrays (filtered by composer)
     dataset_csv_files = []
     if composer != None:
@@ -82,7 +84,7 @@ def get_dataset(batch_size=256, buffer_size=10000, train_split_pct=0.5, seed=13,
 
     # get the data from the dataset and define the features (metronome and notes) + normalization to float values
     features = complete_dataframe_set.to_numpy()
-    features_extended = np.zeros((features.shape[0], 88*3+1), dtype=np.float)
+    features_extended = np.zeros((features.shape[0], FEATURE_SIZE), dtype=np.float)
     if debug:
         print("Amount of 16th-Note-Rows in Dataset: " + str(features.shape[0]))
         print("Iterate over these...")
@@ -90,13 +92,13 @@ def get_dataset(batch_size=256, buffer_size=10000, train_split_pct=0.5, seed=13,
         features_extended[x][0] = features[x][0]/BASE_BPM
         for y in range(1,89):
             if features[x][y] == 0:
-                features_extended[x][y*3 - 2] = 1.0
+            #    features_extended[x][y*3 - 2] = 1.0 # Reducing this value does not help training
                 continue
             if features[x][y] == 1:
-                features_extended[x][y*3+1 - 2] = 1.0
+                features_extended[x][y*2 - 1] = 1.0
                 continue
             if features[x][y] == 2:
-                features_extended[x][y*3+2 - 2] = 1.0
+                features_extended[x][y*2+1 - 1] = 1.0
                 continue
             print("*** ERROR on feature normalization: There are values not fitting here ***")
 
