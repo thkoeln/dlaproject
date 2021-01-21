@@ -210,15 +210,15 @@ class MidiParser:
             theStream.write('midi', fp=filename)
 
     def validateCSV(self, arr):
+        out = np.zeros((len(arr), 89), dtype=np.int16)
         for key in range(1, 88+1):
             for timestep in range(0, len(arr)):
+                out[timestep][key] = arr[timestep][key]
                 if timestep == 0 and arr[timestep][key] == 1:
-                    arr[timestep][key] = 2
-                    continue
+                    out[timestep][key] = 2
                 if timestep > 0 and arr[timestep][key] == 1 and arr[timestep-1][key] == 0:
-                    arr[timestep][key] = 2
-                    continue
-        return arr
+                    out[timestep][key] = 2
+        return out
 
 def main():
     start = perf_counter()
