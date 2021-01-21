@@ -211,8 +211,9 @@ class MidiParser:
 
     def validateCSV(self, arr):
         out = np.zeros((len(arr), 89), dtype=np.int16)
-        for key in range(1, 88+1):
-            for timestep in range(0, len(arr)):
+        for timestep in range(0, len(arr)):
+            out[timestep][0] = arr[timestep][0]
+            for key in range(1, 88+1):
                 out[timestep][key] = arr[timestep][key]
                 if timestep == 0 and arr[timestep][key] == 1:
                     out[timestep][key] = 2
