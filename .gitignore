@@ -134,5 +134,5 @@ dmypy.json
 
 # no tensorflow logs
 log/
-test_arr.csv
+test_arr.*
 test_pred.csv

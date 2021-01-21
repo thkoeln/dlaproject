@@ -127,7 +127,7 @@ class MidiParser:
             now = midif.flat.getElementsByOffset(
                 i/4.0, i/4.0+0.25, includeEndBoundary=False, mustBeginInSpan=True, mustFinishInSpan=False)
             if (i % 500 == 0):
-                print("Processing the {}th 16th note.".format(str(i)))
+                print("Processing the {}th 16th note of {}".format(str(i), filename))
             for element in now.recurse():
 
                 if isinstance(element, tempo.MetronomeMark):  # BPM Mark

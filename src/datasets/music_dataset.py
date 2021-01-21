@@ -9,7 +9,8 @@ basepath = "src/datasets/arrays/"
 mpl.rcParams['figure.figsize'] = (8, 6)
 mpl.rcParams['axes.grid'] = False
 
-BASE_BPM = 200.0
+BASE_BPM = 100.0
+BPM_MODIFIER = 100.0
 # input/output size (for us=(88)*3 + 1  = 265)
 FEATURE_SIZE = 177 
 
@@ -89,7 +90,7 @@ def get_dataset(batch_size=32, buffer_size=10000, train_split_pct=0.5, seed=13, 
         print("Amount of 16th-Note-Rows in Dataset: " + str(features.shape[0]))
         print("Iterate over these...")
     for x in range(features.shape[0]):
-        features_extended[x][0] = features[x][0]/BASE_BPM
+        features_extended[x][0] = (features[x][0]-BPM_MODIFIER)/BASE_BPM
         for y in range(1,89):
             if features[x][y] == 0:
             #    features_extended[x][y*3 - 2] = 1.0 # Reducing this value does not help training

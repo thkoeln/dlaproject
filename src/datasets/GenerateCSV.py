@@ -5,15 +5,25 @@ from os.path import isfile, join
 import numpy as np
 import concurrent.futures
 
+from tensorflow.python.ops.math_ops import truediv
+
 from MidiParser import MidiParser
 
 def generateCSVFilesFromList(parser, file, composer):
     print("=== Working on Interpret: " + str(composer) + " and file: " + str(file))
     filepath = "src/datasets/midi_originals/" + composer + "/" + file
     song = parser.midiToArray(filepath)
-    # TODO: Remove trailing and beginning "empty" lines
+    # ---- This will remove empty lines everywhere in the song, which will result in it having no silence in the end and beginning, as well as no full pause
+    song_new = []
+    for x in range(0,len(song)):
+        sum = 0
+        for y in range(1,89):
+            sum += song[x][y]
+        if sum != 0:
+            song_new.append(song[x])
+    # ----
     try:
-        np.savetxt("src/datasets/arrays/" + composer + "/" + file + ".csv", song, fmt='%d', delimiter=';',
+        np.savetxt("src/datasets/arrays/" + composer + "/" + file + ".csv", song_new, fmt='%d', delimiter=';',
                            header='BPM;A;;B;C;;D;;E;F;;G;;A;;B;C;;D;;E;F;;G;;A;;B;C;;D;;E;F;;G;;A;;B;C;;D;;E;F;;G;;A;;B;C;;D;;E;F;;G;;A;;B;C;;D;;E;F;;G;;A;;B;C;;D;;E;F;;G;;A;;B;C')
     except:
         print("Filesystem Error writing CSV")

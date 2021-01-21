@@ -7,7 +7,7 @@ import pandas as pd
 import numpy as np
 
 # datasets
-from datasets.music_dataset import BASE_BPM, FEATURE_SIZE, get_dataset as get_dataset_music
+from datasets.music_dataset import BASE_BPM, BPM_MODIFIER, FEATURE_SIZE, get_dataset as get_dataset_music
 
 
 def plot_loss(history):
@@ -45,7 +45,7 @@ class TrainerMusic:
     def predictionToArr(self, pred):
         arr = np.zeros((len(pred), 88+1), dtype=np.int16)
         for i in range(0, len(pred)):
-            arr[i][0] = int(BASE_BPM * pred[i][0]) 
+            arr[i][0] = int((BASE_BPM * pred[i][0])+BPM_MODIFIER) 
             for n in range(1, 88+1):                
                 if pred[i][n*2 - 1] >= 0.1:
                     arr[i][n] = 1
@@ -124,7 +124,7 @@ class TrainerMusic:
                 # print(test)
                 # print(type(test))
                 # print(test.shape)
-                prediction = model.predict(test[0][:1000])
+                prediction = model.predict(test[0][:500])
                 print(prediction.shape)
                 arr = self.predictionToArr(prediction)
                 # print(arr)
@@ -138,8 +138,5 @@ class TrainerMusic:
                 pd.DataFrame(prediction).to_csv("test_pred.csv", header=False, index=False)
 
                 arr_file = arr_dataframe.to_numpy()
-                print(arr_file[0])
-                print(arr_file[1])
-                print(arr_file)
                 #arr_file = MidiParser().validateCSV(arr_file)
                 MidiParser().arrayToMidi(arr_file,"test_arr.mid")
