@@ -11,6 +11,7 @@ def generateCSVFilesFromList(parser, file, composer):
     print("=== Working on Interpret: " + str(composer) + " and file: " + str(file))
     filepath = "src/datasets/midi_originals/" + composer + "/" + file
     song = parser.midiToArray(filepath)
+    # TODO: Remove trailing and beginning "empty" lines
     try:
         np.savetxt("src/datasets/arrays/" + composer + "/" + file + ".csv", song, fmt='%d', delimiter=';',
                            header='BPM;A;;B;C;;D;;E;F;;G;;A;;B;C;;D;;E;F;;G;;A;;B;C;;D;;E;F;;G;;A;;B;C;;D;;E;F;;G;;A;;B;C;;D;;E;F;;G;;A;;B;C;;D;;E;F;;G;;A;;B;C;;D;;E;F;;G;;A;;B;C')
