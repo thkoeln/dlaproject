@@ -5,8 +5,6 @@ from os.path import isfile, join
 import numpy as np
 import concurrent.futures
 
-from tensorflow.python.ops.math_ops import truediv
-
 from MidiParser import MidiParser
 
 def generateCSVFilesFromList(parser, file, composer):
