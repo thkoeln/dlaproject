@@ -5,8 +5,6 @@ import math
 from enum import IntEnum
 from time import perf_counter
 import concurrent.futures
-import itertools
-import time
 
 class Sound(IntEnum):
     OFSILENCE = 0

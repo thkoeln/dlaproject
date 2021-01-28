@@ -3,7 +3,7 @@ from tensorflow.python.keras.layers.core import Dropout
 
 from datasets.music_dataset import FEATURE_SIZE
 
-                                     # output size (for us=(88)*3 + 1  = 265)
+                                     # output size (for us=(88)*2 + 1  = 177)
 def get_model(input_shape, lr=0.001, future_target=FEATURE_SIZE, summary=True, lstm_layers=32):
     print("Input Shape: {}".format(input_shape))
     music_lstm_model = tf.keras.models.Sequential([
