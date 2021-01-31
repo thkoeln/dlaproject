@@ -63,7 +63,7 @@ class TrainerMusic:
             plot_multi_variate = False
             single_step_prediction = True # Will break model.fit() with False
             # get dataset
-            training_set, validation_set, shape = get_dataset_music(future_target=future_target,
+            training_set_gen, validation_set_gen, shape = get_dataset_music(future_target=future_target,
                                                                     single_step=single_step_prediction,
                                                                     batch_size=batch_size, composer=composer,train_split_pct=self.train_split)
         else:
@@ -77,8 +77,8 @@ class TrainerMusic:
 
         # train model
         history = model.fit(
-            training_set,
-            validation_data=validation_set,
+            training_set_gen,
+            validation_data=validation_set_gen,
             epochs=self.epochs,
             callbacks=[tensorboard_callback]
         )

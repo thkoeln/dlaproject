@@ -10,9 +10,9 @@ def main():
                         help='Trainer: Music')
     parser.add_argument('--epochs', type=int, default=20) # Test with 120
     parser.add_argument('--learning_rate', type=float, default=0.002)
-    parser.add_argument('--batch_size', type=int, default=64)
+    parser.add_argument('--batch_size', type=int, default=256)
     parser.add_argument('--lstm_layers', type=int, default=64)
-    parser.add_argument('--composer', type=str, default="beethoven")
+    parser.add_argument('--composer', type=str, default=None)
     parser.add_argument('--val_split', type=float, default=0.2)
     parser.add_argument('--train_split', type=float, default=0.8)
     parser.add_argument('--plot', default=True, action='store_true', help='plot loss')
