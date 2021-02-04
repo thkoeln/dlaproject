@@ -173,7 +173,7 @@ def get_dataset(batch_size=32, buffer_size=10000, train_split_pct=0.5, seed=13, 
     #val_data_single = val_data_single.batch(buffer_size)  # .repeat()
 
     #return train_data_single, val_data_single, x_train_single.shape[-2:]
-    return train_data_gen, test_data_gen, train_set.shape[-2:]
+    return train_data_gen, test_data_gen, train_set.shape[-2:], test_set
 
 
 if __name__ == '__main__':

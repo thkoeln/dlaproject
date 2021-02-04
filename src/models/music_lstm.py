@@ -16,7 +16,6 @@ def get_model(input_shape, lr=0.001, future_target=FEATURE_SIZE, summary=True, l
         # tf.keras.layers.Dropout(0.3),
         tf.keras.layers.Dense(future_target, activation="softplus"), # <- Only relu and sigmoid will yield values between 0 and 1 that seem reasonable, but softmax will create the sum of 1 over alle 265 values, which isn't feasible
     ])
-
                     # Liu, Bach in 2014 shows better performance with rmsprop             # checked with mse, categorical_crossentropy, binary_crossentropy
     music_lstm_model.compile(optimizer=tf.keras.optimizers.RMSprop(learning_rate=lr), loss='mse', metrics=['categorical_crossentropy', 'mae'])
 

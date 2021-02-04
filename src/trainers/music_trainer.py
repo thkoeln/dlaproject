@@ -63,7 +63,7 @@ class TrainerMusic:
             plot_multi_variate = False
             single_step_prediction = True # Will break model.fit() with False
             # get dataset
-            training_set_gen, validation_set_gen, shape = get_dataset_music(future_target=future_target,
+            training_set_gen, validation_set_gen, shape, test_dataset = get_dataset_music(future_target=future_target,
                                                                     single_step=single_step_prediction,
                                                                     batch_size=batch_size, composer=composer,train_split_pct=self.train_split)
         else:
@@ -118,23 +118,19 @@ class TrainerMusic:
             plt.title('Training and Validation Loss')
             #plt.show()
 
-            test =  validation_set_gen.data # Choose random lin ehere
-                # print(test)
-                # print(type(test))
-                # print(test.shape)
-            prediction = model.predict(test[:PREDICTION_LENGTH])
+            test_dataset = tf.reshape(test_dataset,[1, test_dataset.shape[0], test_dataset.shape[1]])
+            test_dataset = test_dataset.numpy()
+            print(test_dataset.shape)
+            prediction = model.predict(test_dataset)
             print(prediction.shape)
             arr = self.predictionToArr(prediction)
-                # print(arr)
-                # print(prediction)
-                # print(prediction[0])
-                # print(prediction[1])
-                # print(prediction[2])
+            arr_dataframe = pd.DataFrame(arr)
+            arr_dataframe = pd.DataFrame(arr)
+            arr_dataframe = pd.DataFrame(arr)
             arr_dataframe = pd.DataFrame(arr)
             print(arr_dataframe.shape)
             arr_dataframe.to_csv("test_arr.csv", header=False, index=False)
             pd.DataFrame(prediction).to_csv("test_pred.csv", header=False, index=False)
-
             arr_file = arr_dataframe.to_numpy()
             print(arr_file[0])
             print(arr_file[1])
