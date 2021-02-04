@@ -118,9 +118,8 @@ class TrainerMusic:
             plt.title('Training and Validation Loss')
             #plt.show()
 
-            test_dataset = tf.reshape(test_dataset,[1, test_dataset.shape[0], test_dataset.shape[1]])
-            test_dataset = test_dataset.numpy()
-            print(test_dataset.shape)
+            #[anzahl_zeilen, 64, 177]
+
             prediction = model.predict(test_dataset)
             print(prediction.shape)
             arr = self.predictionToArr(prediction)
@@ -139,4 +138,5 @@ class TrainerMusic:
             pd.DataFrame(arr_corr).to_csv("test_corr.csv", header=False, index=False)
             MidiParser().arrayToMidi(arr_file,"test_arr.mid")
             MidiParser().arrayToMidi(arr_corr,"test_corr.mid")
+    
 
