@@ -124,7 +124,8 @@ class TrainerMusic:
                 # print(test)
                 # print(type(test))
                 # print(test.shape)
-                prediction = model.predict(test[0][:PREDICTION_LENGTH])
+                predict_part = test[0][:PREDICTION_LENGTH]
+                prediction = model.predict(predict_part)
                 print(prediction.shape)
                 arr = self.predictionToArr(prediction)
                 # print(arr)
