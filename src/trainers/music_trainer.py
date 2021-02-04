@@ -8,7 +8,7 @@ import numpy as np
 
 # datasets
 from datasets.music_dataset import BASE_BPM, BPM_MODIFIER, FEATURE_SIZE, get_dataset as get_dataset_music
-PREDICTION_LENGTH = 50
+PREDICTION_LENGTH = 100
 
 def plot_loss(history):
     plt.plot(history.history['loss'], label='loss')
@@ -72,8 +72,12 @@ class TrainerMusic:
         # tensorboard callback to log model training
         tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir="./log")
 
+        input_shape = {}
+        input_shape["shape_key"] = (200,176)
+        input_shape["shape_metro"] = (200,1)
+
         # get model
-        model = get_model(input_shape=shape, lr=self.learning_rate, future_target=future_target, lstm_layers=lstm_layers)
+        model = get_model(input_shape=input_shape, lr=self.learning_rate, future_target=future_target, lstm_layers=lstm_layers)
 
         # train model
         history = model.fit(
@@ -87,8 +91,8 @@ class TrainerMusic:
         #print(model.get_weights())
 
         if plot:
-            cee = history.history['categorical_crossentropy']
-            val_cee = history.history['val_categorical_crossentropy']
+            cee = history.history['binary_crossentropy']
+            val_cee = history.history['val_binary_crossentropy']
 
             acc = history.history['mae']
             val_acc = history.history['val_mae']
@@ -100,10 +104,10 @@ class TrainerMusic:
 
             plt.figure(figsize=(8, 12))
             plt.subplot(1, 3, 1)
-            plt.plot(epochs_range, cee, label='Training CCE')
-            plt.plot(epochs_range, val_cee, label='Validation CCE')
+            plt.plot(epochs_range, cee, label='Training BCE')
+            plt.plot(epochs_range, val_cee, label='Validation BCE')
             plt.legend(loc='lower right')
-            plt.title('Training and Validation CCE')
+            plt.title('Training and Validation BCE')
 
             plt.subplot(1, 3, 2)
             plt.plot(epochs_range, acc, label='Training MAE')
@@ -116,7 +120,7 @@ class TrainerMusic:
             plt.plot(epochs_range, val_loss, label='Validation Loss')
             plt.legend(loc='upper right')
             plt.title('Training and Validation Loss')
-            #plt.show()
+            plt.show()
 
             #[anzahl_zeilen, 64, 177]
             zeilen = test_dataset.shape[0]
@@ -131,8 +135,7 @@ class TrainerMusic:
             for z in range(int(zeilen/batches)):
                 for b in range(batches):
                     pred_dataset[z][b] = test_dataset.pop(0)
-                    print("{} {} {}".format(z,b, pred_dataset[z][b]))
-
+                    #print("{} {} {}".format(z,b, pred_dataset[z][b]))
                 
             #test_dataset = np.reshape(test_dataset, (test_dataset.shape[0], 1, test_dataset.shape[1]))
             pred_input = pred_dataset #test_dataset#:PREDICTION_LENGTH

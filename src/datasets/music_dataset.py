@@ -143,6 +143,13 @@ def get_dataset(batch_size=32, buffer_size=10000, train_split_pct=0.5, seed=13, 
                                          length=past_history, sampling_rate=1, stride=1,
                                          batch_size=batch_size)
 
+    #train_data_gen_keys = TimeseriesGenerator(train_set, train_set,
+    #                                     length=past_history, sampling_rate=1, stride=1,
+    #                                     batch_size=batch_size)
+    #train_data_gen_metro = TimeseriesGenerator(train_set, train_set,
+    #                                     length=past_history, sampling_rate=1, stride=1,
+    #                                     batch_size=batch_size)
+
 
     test_data_gen = TimeseriesGenerator(test_set, test_set,
                                     length=past_history, sampling_rate=1, stride=1,
