@@ -118,11 +118,11 @@ class TrainerMusic:
             plt.title('Training and Validation Loss')
             #plt.show()
 
-            test =  validation_set_gen.data[1] # Choose random lin ehere
+            test =  validation_set_gen.data # Choose random lin ehere
                 # print(test)
                 # print(type(test))
                 # print(test.shape)
-            prediction = model.predict(test[0][:PREDICTION_LENGTH])
+            prediction = model.predict(test[:PREDICTION_LENGTH])
             print(prediction.shape)
             arr = self.predictionToArr(prediction)
                 # print(arr)
