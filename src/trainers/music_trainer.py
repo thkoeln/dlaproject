@@ -8,7 +8,7 @@ import numpy as np
 
 # datasets
 from datasets.music_dataset import BASE_BPM, BPM_MODIFIER, FEATURE_SIZE, get_dataset as get_dataset_music
-PREDICTION_LENGTH = 800
+PREDICTION_LENGTH = 50
 
 def plot_loss(history):
     plt.plot(history.history['loss'], label='loss')
@@ -119,13 +119,26 @@ class TrainerMusic:
             #plt.show()
 
             #[anzahl_zeilen, 64, 177]
+            zeilen = test_dataset.shape[0]
+            spalten = test_dataset.shape[1]
+            batches = int(zeilen/PREDICTION_LENGTH)
 
-            prediction = model.predict(test_dataset)
+            pred_dataset = np.empty((int(zeilen/batches),batches,spalten))
+            print(pred_dataset.shape)
+
+            test_dataset = test_dataset.tolist()
+
+            for z in range(int(zeilen/batches)):
+                for b in range(batches):
+                    pred_dataset[z][b] = test_dataset.pop(0)
+                    print("{} {} {}".format(z,b, pred_dataset[z][b]))
+
+                
+            #test_dataset = np.reshape(test_dataset, (test_dataset.shape[0], 1, test_dataset.shape[1]))
+            pred_input = pred_dataset #test_dataset#:PREDICTION_LENGTH
+            prediction = model.predict(pred_input)
             print(prediction.shape)
             arr = self.predictionToArr(prediction)
-            arr_dataframe = pd.DataFrame(arr)
-            arr_dataframe = pd.DataFrame(arr)
-            arr_dataframe = pd.DataFrame(arr)
             arr_dataframe = pd.DataFrame(arr)
             print(arr_dataframe.shape)
             arr_dataframe.to_csv("test_arr.csv", header=False, index=False)
@@ -138,5 +151,3 @@ class TrainerMusic:
             pd.DataFrame(arr_corr).to_csv("test_corr.csv", header=False, index=False)
             MidiParser().arrayToMidi(arr_file,"test_arr.mid")
             MidiParser().arrayToMidi(arr_corr,"test_corr.mid")
-    
-

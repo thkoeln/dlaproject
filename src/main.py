@@ -8,7 +8,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--trainer', type=str, default='Music',
                         help='Trainer: Music')
-    parser.add_argument('--epochs', type=int, default=1) # Test with 120
+    parser.add_argument('--epochs', type=int, default=10) # Test with 120
     parser.add_argument('--learning_rate', type=float, default=0.002)
     parser.add_argument('--batch_size', type=int, default=512)
     parser.add_argument('--lstm_layers', type=int, default=64)
