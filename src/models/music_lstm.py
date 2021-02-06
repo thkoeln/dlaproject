@@ -46,7 +46,7 @@ def get_model(input_shape, lr=0.001, future_target=FEATURE_SIZE_KEYS+FEATURE_SIZ
     #])
 
                     # Liu, Bach in 2014 shows better performance with rmsprop             # checked with mse, categorical_crossentropy, binary_crossentropy
-    music_lstm_model.compile(optimizer=tf.keras.optimizers.RMSprop(learning_rate=lr), loss=[keras.losses.MeanSquaredError(), keras.losses.BinaryCrossentropy()], loss_weights=[1.0,0.2], metrics=['binary_crossentropy', 'mae'])
+    music_lstm_model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=lr), loss=[keras.losses.MeanSquaredError(), keras.losses.BinaryCrossentropy()], loss_weights=[1.0,0.2], metrics=['binary_crossentropy', 'mae'])
 
     if summary:
         # Print out model information on parameters (important for calculating the size of VRAM)

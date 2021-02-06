@@ -13,8 +13,8 @@ def main():
     parser.add_argument('--batch_size', type=int, default=256)
     parser.add_argument('--lstm_layers', type=int, default=128)
     parser.add_argument('--composer', type=str, default="grieg")
-    parser.add_argument('--val_split', type=float, default=0.2)
-    parser.add_argument('--train_split', type=float, default=0.8)
+    parser.add_argument('--val_split', type=float, default=0.5)
+    parser.add_argument('--train_split', type=float, default=0.5)
     parser.add_argument('--plot', default=True, action='store_true', help='plot loss')
 
     config = parser.parse_args()

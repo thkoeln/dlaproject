@@ -65,7 +65,7 @@ class TrainerMusic:
             # get dataset
             training_set_gen, validation_set_gen, train_split, test_dataset, train_dataset = get_dataset_music(future_target=future_target,
                                                                     single_step=single_step_prediction,
-                                                                    batch_size=batch_size, composer=composer,train_split_pct=self.train_split, past_history=past_history)
+                                                                    batch_size=batch_size, composer=composer,train_split_pct=self.train_split, past_history=past_history, step_size=batch_size)
         else:
             raise NotImplementedError()
 
@@ -75,8 +75,8 @@ class TrainerMusic:
         # TODO: INPUT DATA GENERATOR NEEDS TO BE CONVERTED TO TWO GENERATORS
         print("Train Set Length: {}".format(train_split))
         input_shape = {}
-        input_shape["shape_metro"] = (FEATURE_SIZE_METRO)
-        input_shape["shape_key"] = (FEATURE_SIZE_KEYS)
+        input_shape["shape_metro"] = (batch_size, FEATURE_SIZE_METRO)
+        input_shape["shape_key"] = (batch_size,FEATURE_SIZE_KEYS)
 
         print(training_set_gen[0])
 
@@ -96,11 +96,31 @@ class TrainerMusic:
         for vk in test_dataset[:,1]:
             val_keys.append(vk[:])
 
+        
+
         train_metro = tf.convert_to_tensor(train_metro)
         train_keys = tf.convert_to_tensor(train_keys)
 
+        train_metro = tf.data.Dataset.from_tensors(train_metro)
+        train_keys = tf.data.Dataset.from_tensors(train_keys)
+
+        train_metro = train_metro.cache().batch(batch_size)#.repeat()
+        train_keys = train_keys.cache().batch(batch_size)#.repeat()
+
         val_metro = tf.convert_to_tensor(val_metro)
         val_keys = tf.convert_to_tensor(val_keys)
+
+        val_metro = tf.data.Dataset.from_tensors(val_metro)
+        val_keys = tf.data.Dataset.from_tensors(val_keys)
+
+        val_metro = val_metro.cache().batch(batch_size)#.repeat()
+        val_keys = val_keys.cache().batch(batch_size)#.repeat()
+
+        train_input = tf.data.Dataset.zip((train_metro, train_keys))
+        val_input = tf.data.Dataset.zip((val_metro, val_keys))
+
+        train_iter = train_input.as_numpy_iterator()
+        val_iter = val_input.as_numpy_iterator()
 
         print(train_metro)
         print(train_keys)
@@ -110,13 +130,14 @@ class TrainerMusic:
 
         # train model
         history = model.fit(
-            x=[train_metro, train_keys],
-            validation_data=[val_metro, val_keys],
+            x=train_iter,
+            validation_data=val_iter,
             epochs=self.epochs,
             callbacks=[tensorboard_callback],
             shuffle=False,
             workers=4,
-            use_multiprocessing = True
+            use_multiprocessing = True,
+            batch_size=batch_size
         )
 
         print("Parameters: {}".format(model.count_params()))
