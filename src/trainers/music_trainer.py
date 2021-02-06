@@ -7,7 +7,7 @@ import pandas as pd
 import numpy as np
 
 # datasets
-from datasets.music_dataset import BASE_BPM, BPM_MODIFIER, FEATURE_SIZE, get_dataset as get_dataset_music
+from datasets.music_dataset import BASE_BPM, BPM_MODIFIER, FEATURE_SIZE_KEYS, FEATURE_SIZE_METRO, get_dataset as get_dataset_music
 PREDICTION_LENGTH = 100
 
 def plot_loss(history):
@@ -56,35 +56,67 @@ class TrainerMusic:
         return arr
 
 
-    def train(self, plot=True, batch_size=32, lstm_layers=16, composer=None, **kwargs):
+    def train(self, plot=True, batch_size=32, lstm_layers=16, composer=None, past_history=512, **kwargs):
         music = True
         if music:
-            future_target = FEATURE_SIZE # output size: bestimmt die größe des letzten Dense layer (u.a.)
+            future_target = FEATURE_SIZE_METRO+FEATURE_SIZE_KEYS # output size: bestimmt die größe des letzten Dense layer (u.a.)
             plot_multi_variate = False
             single_step_prediction = True # Will break model.fit() with False
             # get dataset
-            training_set_gen, validation_set_gen, shape, test_dataset = get_dataset_music(future_target=future_target,
+            training_set_gen, validation_set_gen, train_split, test_dataset, train_dataset = get_dataset_music(future_target=future_target,
                                                                     single_step=single_step_prediction,
-                                                                    batch_size=batch_size, composer=composer,train_split_pct=self.train_split)
+                                                                    batch_size=batch_size, composer=composer,train_split_pct=self.train_split, past_history=past_history)
         else:
             raise NotImplementedError()
 
         # tensorboard callback to log model training
         tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir="./log")
 
+        # TODO: INPUT DATA GENERATOR NEEDS TO BE CONVERTED TO TWO GENERATORS
+        print("Train Set Length: {}".format(train_split))
         input_shape = {}
-        input_shape["shape_key"] = (200,176)
-        input_shape["shape_metro"] = (200,1)
+        input_shape["shape_metro"] = (FEATURE_SIZE_METRO)
+        input_shape["shape_key"] = (FEATURE_SIZE_KEYS)
+
+        print(training_set_gen[0])
+
+        train_metro = []
+        for tm in train_dataset[:,0]:
+            train_metro.append(tm[:])
+
+        train_keys = []
+        for tk in train_dataset[:,1]:
+            train_keys.append(tk[:])
+
+        val_metro = []
+        for vm in test_dataset[:,0]:
+            val_metro.append(vm[:])
+
+        val_keys = []
+        for vk in test_dataset[:,1]:
+            val_keys.append(vk[:])
+
+        train_metro = tf.convert_to_tensor(train_metro)
+        train_keys = tf.convert_to_tensor(train_keys)
+
+        val_metro = tf.convert_to_tensor(val_metro)
+        val_keys = tf.convert_to_tensor(val_keys)
+
+        print(train_metro)
+        print(train_keys)
 
         # get model
         model = get_model(input_shape=input_shape, lr=self.learning_rate, future_target=future_target, lstm_layers=lstm_layers)
 
         # train model
         history = model.fit(
-            training_set_gen,
-            validation_data=validation_set_gen,
+            x=[train_metro, train_keys],
+            validation_data=[val_metro, val_keys],
             epochs=self.epochs,
-            callbacks=[tensorboard_callback]
+            callbacks=[tensorboard_callback],
+            shuffle=False,
+            workers=4,
+            use_multiprocessing = True
         )
 
         print("Parameters: {}".format(model.count_params()))

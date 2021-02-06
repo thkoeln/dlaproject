@@ -1,10 +1,11 @@
+from pandas.core.dtypes.missing import na_value_for_dtype
 import tensorflow as tf
 import matplotlib as mpl
 import numpy as np
 import os
 import pandas as pd
-from tensorflow.keras import Sequential
 from tensorflow.keras.preprocessing.sequence import TimeseriesGenerator
+import itertools
 
 basepath = "src/datasets/arrays/"
 
@@ -14,7 +15,9 @@ mpl.rcParams['axes.grid'] = False
 BASE_BPM = 100.0
 BPM_MODIFIER = 100.0
 # input/output size (for us=(88)*3 + 1  = 265)
-FEATURE_SIZE = 177
+FEATURE_NUM = 2
+FEATURE_SIZE_KEYS = 176
+FEATURE_SIZE_METRO = 1
 
 #  Is actually seems to do data windowing (@see https://www.tensorflow.org/tutorials/structured_data/time_series#data_windowing)
 # bisher verarbeitete samples
@@ -87,59 +90,77 @@ def get_dataset(batch_size=32, buffer_size=10000, train_split_pct=0.5, seed=13, 
 
     # get the data from the dataset and define the features (metronome and notes) + normalization to float values
     features = complete_dataframe_set.to_numpy()
-    features_extended = np.zeros(
-        (features.shape[0], FEATURE_SIZE), dtype=np.float)
+    #features_extended = np.zeros((features.shape[0], FEATURE_SIZE), dtype=np.float)
+    #features_extended = np.zeros(shape=(features.shape[0], FEATURE_NUM, FEATURE_SIZE_KEYS), dtype=np.float)
+    features_extended = {}
+
     if debug:
         print("Features Shape: {}".format(features.shape))
+        #print("Features_Extended Shape: {}".format(features_extended.shape))
         print("Amount of 16th-Note-Rows in Dataset: " + str(features.shape[0]))
-        print("Iterate over these...")
+
     for x in range(features.shape[0]):
-        features_extended[x][0] = (features[x][0]-BPM_MODIFIER)/BASE_BPM
+        # Some output, to see it is working on data
         if x%10000 == 0:
             print("{} rows transformed...".format(x))
+        features_extended[x] = []
+        features_extended[x].append(np.zeros((FEATURE_SIZE_METRO), dtype=np.float32))
+        features_extended[x].append(np.zeros((FEATURE_SIZE_KEYS), dtype=np.float32))
+
+        # Metronome
+        features_extended[x][0][0] = (features[x][0]-BPM_MODIFIER)/BASE_BPM
+        
+        # Notes/Keys
         for y in range(1, 89):
             if features[x][y] == 0:
                 #    features_extended[x][y*3 - 2] = 1.0 # Reducing this value does not help training
                 continue
             if features[x][y] == 1:
-                features_extended[x][y*2 - 1] = 1.0
+                features_extended[x][1][y*2 - 1] = 1.0
                 continue
             if features[x][y] == 2:
-                features_extended[x][y*2+1 - 1] = 1.0
+                features_extended[x][1][y*2+1 - 1] = 1.0
                 continue
             print(
                 "*** ERROR on feature normalization: There are values not fitting here ***")
-
+    
     features = None
+
     if debug:
         print(features_extended[0])
         print(features_extended[16])
         print(features_extended[32])
         print(features_extended[64])
         print(features_extended[128])
+        #print(features_extended.shape)
 
     # normalize data (splitting per amount of notes etc)
 
     # split for train and validation set
     #dataset = features.values
     dataset = features_extended
-    dataset_size = dataset.shape[0]
+    dataset_size = len(features_extended)
     print("Dataset contains {} rows, splitting by {}%".format(
         dataset_size, train_split_pct*100.0))
-    train_split = int(train_split_pct*dataset_size)
-    # ??? vvv was macht das?
-    #data_mean = dataset[:train_split].mean(axis=0)
-    #data_std = dataset[:train_split].std(axis=0)
+    train_split = int(train_split_pct*dataset_size) 
 
-    #dataset = (dataset - data_mean) / data_std
+    dataset = pd.DataFrame(dataset).transpose()
+    print(dataset.head())
 
     train_set = dataset[:train_split]
     test_set = dataset[train_split:]
+
+    train_set = train_set.to_numpy()
+    test_set = test_set.to_numpy()
+
+    print(train_set[0])
+
+    # TODO: This working would be great
+    #train_set = tf.convert_to_tensor(train_set)
+    #test_set = tf.convert_to_tensor(test_set)
+
     
-
-    # ??? ^^^
-
-    train_data_gen = TimeseriesGenerator(train_set, train_set,
+    train_data_gen = TimeseriesGenerator(data=train_set, targets=train_set,
                                          length=past_history, sampling_rate=1, stride=1,
                                          batch_size=batch_size)
 
@@ -154,6 +175,7 @@ def get_dataset(batch_size=32, buffer_size=10000, train_split_pct=0.5, seed=13, 
     test_data_gen = TimeseriesGenerator(test_set, test_set,
                                     length=past_history, sampling_rate=1, stride=1,
                                     batch_size=batch_size)
+
 
     # TODO: Check this, is this feasible here?
     # x_train_single, y_train_single = data_windowing(dataset, dataset, 0,
@@ -180,7 +202,7 @@ def get_dataset(batch_size=32, buffer_size=10000, train_split_pct=0.5, seed=13, 
     #val_data_single = val_data_single.batch(buffer_size)  # .repeat()
 
     #return train_data_single, val_data_single, x_train_single.shape[-2:]
-    return train_data_gen, test_data_gen, train_set.shape[-2:], test_set
+    return train_data_gen, test_data_gen, train_split, test_set, train_set
 
 
 if __name__ == '__main__':
